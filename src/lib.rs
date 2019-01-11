@@ -1,7 +1,11 @@
-#[cfg(test)]
-mod tests {
-    #[test]
-    fn it_works() {
-        assert_eq!(2 + 2, 4);
-    }
-}
+extern crate serde_json;
+extern crate stb_image;
+
+#[macro_use]
+extern crate serde_derive;
+
+
+mod bitmap_font_atlas;
+
+
+pub use crate::bitmap_font_atlas::*;
