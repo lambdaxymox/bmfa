@@ -67,7 +67,7 @@ pub struct BitmapFontAtlas {
 /// Write the metadata file that accompanies the atlas image to a file.
 ///
 pub fn write_metadata<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
-    let mut file = match File::create(path) {
+    let file = match File::create(path) {
         Ok(val) => val,
         Err(e) => return Err(e),
     };
@@ -110,7 +110,7 @@ pub enum Error {
 ///
 pub fn load_font_atlas<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, Error> {
     let force_channels = 4;
-    let mut image_data = match stb_image::image::load_with_depth(&path, force_channels, false) {
+    let image_data = match stb_image::image::load_with_depth(&path, force_channels, false) {
         LoadResult::ImageU8(image_data) => image_data,
         LoadResult::Error(_) => {
             let disp = path.as_ref().display();
@@ -131,7 +131,7 @@ pub fn load_font_atlas<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, Error> {
 /// Load a BitmapFontAtlas image from a file.
 ///
 pub fn load_font_metadata<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlasMetadata, Error> {
-    let mut file = match File::open(&path) {
+    let file = match File::open(&path) {
         Ok(val) => val,
         Err(_) => {
             return Err(
