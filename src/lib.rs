@@ -1,5 +1,5 @@
 extern crate serde_json;
-extern crate stb_image;
+extern crate image;
 
 #[macro_use]
 extern crate serde_derive;

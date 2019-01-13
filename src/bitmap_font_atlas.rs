@@ -1,10 +1,11 @@
 use std::collections::HashMap;
 use std::fs::File;
 use std::io;
+use std::io::Read;
 use std::path::Path;
 
-use stb_image;
-use stb_image::image::LoadResult;
+use image::png;
+use image::ImageDecoder;
 
 
 ///
@@ -63,6 +64,15 @@ pub struct BitmapFontAtlas {
     pub buffer: Vec<u8>,
 }
 
+impl BitmapFontAtlas {
+    fn new(metadata: BitmapFontAtlasMetadata, buffer: Vec<u8>) -> BitmapFontAtlas {
+        BitmapFontAtlas {
+            metadata: metadata,
+            buffer: buffer,
+        }
+    }
+}
+
 ///
 /// Write the metadata file that accompanies the atlas image to a file.
 ///
@@ -103,34 +113,25 @@ pub enum Error {
     FileNotFound(String),
     CouldNotParseFontFile(String),
     Float32NotByteVector(String),
+    CannotLoadAtlas,
+    CannotLoadMetadata,
 }
 
 ///
 /// Load a BitmapFontAtlas image from a file.
 ///
-pub fn load_font_atlas<P: AsRef<Path>>(path: P) -> Result<Vec<u8>, Error> {
-    let force_channels = 4;
-    let image_data = match stb_image::image::load_with_depth(&path, force_channels, false) {
-        LoadResult::ImageU8(image_data) => image_data,
-        LoadResult::Error(_) => {
-            let disp = path.as_ref().display();
-            return Err(Error::CouldNotParseFontFile(format!("{}", disp)));
-        }
-        LoadResult::ImageF32(_) => {
-            let disp = path.as_ref().display();
-            return Err(
-                Error::Float32NotByteVector(format!("{}", disp))
-            );
-        }
-    };
+fn load_font_atlas<R: Read>(reader: R) -> Result<Vec<u8>, Error> {
+    let png_reader = png::PNGDecoder::new(reader).unwrap();
+    let image: Vec<u8> = png_reader.read_image().unwrap();
 
-    Ok(image_data.data)
+    Ok(image)
 }
 
 ///
 /// Load a BitmapFontAtlas image from a file.
 ///
-pub fn load_font_metadata<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlasMetadata, Error> {
+fn load_font_metadata<R: Read>(reader: R) -> Result<BitmapFontAtlasMetadata, Error> {
+    /*
     let file = match File::open(&path) {
         Ok(val) => val,
         Err(_) => {
@@ -139,14 +140,23 @@ pub fn load_font_metadata<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlasMeta
             );
         }
     };
-    let metadata = match serde_json::from_reader(file) {
+    */
+    let metadata = match serde_json::from_reader(reader) {
         Ok(val) => val,
-        Err(_) => {
-            return Err(
-                Error::CouldNotParseFontFile(format!("{}", path.as_ref().display()))
-            );
-        }
+        Err(_) => return Err(Error::CannotLoadMetadata),
     };
 
     Ok(metadata)
+}
+
+pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, Error> {
+    let mut reader = File::open(&path).unwrap();
+    let mut zip = zip::ZipArchive::new(reader).unwrap();
+
+    let mut metadata_file = zip.by_name("metadata.json").unwrap();
+    let metadata = load_font_metadata(metadata_file).unwrap();
+    let mut atlas_file = zip.by_name("atlas.png").unwrap();
+    let atlas = load_font_atlas(atlas_file).unwrap();
+
+    Ok(BitmapFontAtlas::new(metadata, atlas))
 }
