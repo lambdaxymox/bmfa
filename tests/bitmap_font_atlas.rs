@@ -40,3 +40,10 @@ fn a_valid_bmfa_file_has_exactly_one_image_file() {
 
     assert!(atlas_file.is_ok());
 }
+
+#[test]
+fn bmfa_loader_should_load_valid_bmfa_file() {
+    let font_atlas = bmfa::load(SAMPLE_FILE);
+
+    assert!(font_atlas.is_ok());
+}
