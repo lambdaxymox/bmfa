@@ -140,12 +140,12 @@ fn load_font_metadata<R: Read>(reader: R) -> Result<BitmapFontAtlasMetadata, Err
 }
 
 pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, Error> {
-    let mut reader = File::open(&path).unwrap();
+    let reader = File::open(&path).unwrap();
     let mut zip = zip::ZipArchive::new(reader).unwrap();
 
-    let mut metadata_file = zip.by_name("metadata.json").unwrap();
+    let metadata_file = zip.by_name("metadata.json").unwrap();
     let metadata = load_font_metadata(metadata_file).unwrap();
-    let mut atlas_file = zip.by_name("atlas.png").unwrap();
+    let atlas_file = zip.by_name("atlas.png").unwrap();
     let atlas = load_font_atlas(atlas_file).unwrap();
 
     Ok(BitmapFontAtlas::new(metadata, atlas))
