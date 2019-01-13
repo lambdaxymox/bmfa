@@ -77,7 +77,7 @@ fn bmfa_loader_should_load_valid_bmfa_file() {
 #[test]
 fn bmfa_file_dimensions_should_match_buffer_length() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
-    let expected = font_atlas.buffer.len();
+    let expected = font_atlas.image.len();
     let result = 4 * font_atlas.dimensions * font_atlas.dimensions;
 
     assert_eq!(result, expected);

@@ -89,7 +89,7 @@ pub struct BitmapFontAtlas {
     /// The table containing the metadata for each glyph.
     pub glyph_metadata: HashMap<usize, GlyphMetadata>,
     /// The array containing the font atlas image itself.
-    pub buffer: Vec<u8>,
+    pub image: Vec<u8>,
 }
 
 impl BitmapFontAtlas {
@@ -102,7 +102,7 @@ impl BitmapFontAtlas {
             slot_glyph_size: metadata.slot_glyph_size,
             glyph_size: metadata.glyph_size,
             glyph_metadata: metadata.glyph_metadata,
-            buffer: buffer,
+            image: buffer,
         }
     }
 
@@ -138,7 +138,7 @@ pub fn write_metadata<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::R
 ///
 pub fn write_atlas_buffer<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
     image::save_buffer(
-        path, &atlas.buffer,
+        path, &atlas.image,
         atlas.dimensions as u32, atlas.dimensions as u32, image::RGBA(8)
     )
 }
