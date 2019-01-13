@@ -44,6 +44,11 @@ impl GlyphMetadata {
     }
 }
 
+///
+/// The `BitmapFontAtlasMetadata` struct holds all the information about the image
+/// and every glyph in the font atlas, including where each glyph is located in the
+/// atlas image for rendering text.
+///
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct BitmapFontAtlasMetadata {
     /// The width and height of the image, in pixels.
@@ -64,7 +69,7 @@ pub struct BitmapFontAtlasMetadata {
 
 ///
 /// A `BitmapFontAtlas` is a bitmapped font sheet. It contains the glyph parameters necessary to
-/// index into the bitmap image as well as the bitmap image.
+/// index into the bitmap image as well as the bitmap image itself.
 ///
 pub struct BitmapFontAtlas {
     pub metadata: BitmapFontAtlasMetadata,
@@ -126,6 +131,9 @@ pub enum BmfaError {
     CannotLoadAtlasMetadata(String),
 }
 
+///
+/// Load a bitmap font atlas directly from a file.
+///
 pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, BmfaError> {
     let reader = File::open(&path).map_err(|_e| {
         BmfaError::FileNotFound(format!("{}", path.as_ref().display()))
