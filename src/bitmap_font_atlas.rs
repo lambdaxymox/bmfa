@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::error;
 use std::fmt;
 use std::fs::File;
 use std::io;
@@ -157,6 +158,12 @@ impl fmt::Display for BmfaError {
                 writeln!(f, "The font atlas metadata file is corrupt: {}.", path)
             }
         }
+    }
+}
+
+impl error::Error for BmfaError {
+    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
+        None
     }
 }
 
