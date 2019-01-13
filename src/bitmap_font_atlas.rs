@@ -121,25 +121,25 @@ pub enum BmfaError {
 
 pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, BmfaError> {
     let reader = File::open(&path).map_err(
-        |e| { BmfaError::FileNotFound(format!("{}", path.as_ref().display())) }
+        |_e| { BmfaError::FileNotFound(format!("{}", path.as_ref().display())) }
     )?;
     let mut zip = zip::ZipArchive::new(reader).map_err(
-        |e| { BmfaError::FileExistsButCannotBeOpened(format!("{}", path.as_ref().display())) }
+        |_e| { BmfaError::FileExistsButCannotBeOpened(format!("{}", path.as_ref().display())) }
     )?;
     let metadata_file = zip.by_name("metadata.json").map_err(
-        |e| { BmfaError::FontMetadataNotFound(format!("{}", path.as_ref().display())) }
+        |_e| { BmfaError::FontMetadataNotFound(format!("{}", path.as_ref().display())) }
     )?;
     let metadata = serde_json::from_reader(metadata_file).map_err(
-        |e| { BmfaError::CannotLoadAtlasMetadata(format!("{}", path.as_ref().display())) }
+        |_e| { BmfaError::CannotLoadAtlasMetadata(format!("{}", path.as_ref().display())) }
     )?;
     let atlas_file = zip.by_name("atlas.png").map_err(
-        |e| { BmfaError::FontAtlasImageNotFound(format!("{}", path.as_ref().display())) }
+        |_e| { BmfaError::FontAtlasImageNotFound(format!("{}", path.as_ref().display())) }
     )?;
     let png_reader = png::PNGDecoder::new(atlas_file).map_err(
-        |e| { BmfaError::CannotLoadAtlasImage(format!("{}", path.as_ref().display())) }
+        |_e| { BmfaError::CannotLoadAtlasImage(format!("{}", path.as_ref().display())) }
     )?;
     let atlas_image = png_reader.read_image().map_err(
-        |e| { BmfaError::CannotLoadAtlasImage(format!("{}", path.as_ref().display())) }
+        |_e| { BmfaError::CannotLoadAtlasImage(format!("{}", path.as_ref().display())) }
     )?;
 
     Ok(BitmapFontAtlas::new(metadata, atlas_image))
