@@ -93,7 +93,7 @@ pub struct BitmapFontAtlas {
 }
 
 impl BitmapFontAtlas {
-    pub fn new(metadata: BitmapFontAtlasMetadata, buffer: Vec<u8>) -> BitmapFontAtlas {
+    pub fn new(metadata: BitmapFontAtlasMetadata, image: Vec<u8>) -> BitmapFontAtlas {
         BitmapFontAtlas {
             dimensions: metadata.dimensions,
             columns: metadata.columns,
@@ -102,7 +102,7 @@ impl BitmapFontAtlas {
             slot_glyph_size: metadata.slot_glyph_size,
             glyph_size: metadata.glyph_size,
             glyph_metadata: metadata.glyph_metadata,
-            image: buffer,
+            image: image,
         }
     }
 
