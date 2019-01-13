@@ -122,6 +122,10 @@ pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io:
 }
 
 
+///
+/// A `BmfaError` is an error typing representing the results of the failure of
+/// a bmfa read or write operation.
+///
 #[derive(Debug, Clone)]
 pub enum BmfaError {
     FileNotFound(String),
