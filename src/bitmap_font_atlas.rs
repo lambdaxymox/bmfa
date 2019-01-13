@@ -131,16 +131,6 @@ fn load_font_atlas<R: Read>(reader: R) -> Result<Vec<u8>, Error> {
 /// Load a BitmapFontAtlas image from a file.
 ///
 fn load_font_metadata<R: Read>(reader: R) -> Result<BitmapFontAtlasMetadata, Error> {
-    /*
-    let file = match File::open(&path) {
-        Ok(val) => val,
-        Err(_) => {
-            return Err(
-                Error::FileNotFound(format!("{}", path.as_ref().display()))
-            );
-        }
-    };
-    */
     let metadata = match serde_json::from_reader(reader) {
         Ok(val) => val,
         Err(_) => return Err(Error::CannotLoadMetadata),
