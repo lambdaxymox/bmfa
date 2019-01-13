@@ -109,44 +109,38 @@ pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io:
 
 
 #[derive(Debug, Clone)]
-pub enum Error {
+pub enum BmfaError {
     FileNotFound(String),
-    CouldNotParseFontFile(String),
+    FileExistsButCannotBeOpened(String),
     Float32NotByteVector(String),
-    CannotLoadAtlas,
-    CannotLoadMetadata,
+    FontAtlasImageNotFound(String),
+    CannotLoadAtlasImage(String),
+    FontMetadataNotFound(String),
+    CannotLoadAtlasMetadata(String),
 }
 
-///
-/// Load a BitmapFontAtlas image from a file.
-///
-fn load_font_atlas<R: Read>(reader: R) -> Result<Vec<u8>, Error> {
-    let png_reader = png::PNGDecoder::new(reader).unwrap();
-    let image: Vec<u8> = png_reader.read_image().unwrap();
+pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, BmfaError> {
+    let reader = File::open(&path).map_err(
+        |e| { BmfaError::FileNotFound(format!("{}", path.as_ref().display())) }
+    )?;
+    let mut zip = zip::ZipArchive::new(reader).map_err(
+        |e| { BmfaError::FileExistsButCannotBeOpened(format!("{}", path.as_ref().display())) }
+    )?;
+    let metadata_file = zip.by_name("metadata.json").map_err(
+        |e| { BmfaError::FontMetadataNotFound(format!("{}", path.as_ref().display())) }
+    )?;
+    let metadata = serde_json::from_reader(metadata_file).map_err(
+        |e| { BmfaError::CannotLoadAtlasMetadata(format!("{}", path.as_ref().display())) }
+    )?;
+    let atlas_file = zip.by_name("atlas.png").map_err(
+        |e| { BmfaError::FontAtlasImageNotFound(format!("{}", path.as_ref().display())) }
+    )?;
+    let png_reader = png::PNGDecoder::new(atlas_file).map_err(
+        |e| { BmfaError::CannotLoadAtlasImage(format!("{}", path.as_ref().display())) }
+    )?;
+    let atlas_image = png_reader.read_image().map_err(
+        |e| { BmfaError::CannotLoadAtlasImage(format!("{}", path.as_ref().display())) }
+    )?;
 
-    Ok(image)
-}
-
-///
-/// Load a BitmapFontAtlas image from a file.
-///
-fn load_font_metadata<R: Read>(reader: R) -> Result<BitmapFontAtlasMetadata, Error> {
-    let metadata = match serde_json::from_reader(reader) {
-        Ok(val) => val,
-        Err(_) => return Err(Error::CannotLoadMetadata),
-    };
-
-    Ok(metadata)
-}
-
-pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, Error> {
-    let reader = File::open(&path).unwrap();
-    let mut zip = zip::ZipArchive::new(reader).unwrap();
-
-    let metadata_file = zip.by_name("metadata.json").unwrap();
-    let metadata = load_font_metadata(metadata_file).unwrap();
-    let atlas_file = zip.by_name("atlas.png").unwrap();
-    let atlas = load_font_atlas(atlas_file).unwrap();
-
-    Ok(BitmapFontAtlas::new(metadata, atlas))
+    Ok(BitmapFontAtlas::new(metadata, atlas_image))
 }
