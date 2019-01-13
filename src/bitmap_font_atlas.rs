@@ -46,12 +46,19 @@ impl GlyphMetadata {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct BitmapFontAtlasMetadata {
+    /// The width and height of the image, in pixels.
     pub dimensions: usize,
+    /// The number of glyphs per row in the atlas.
     pub columns: usize,
+    /// The number of glyphs per column in the atlas.
     pub rows: usize,
+    /// The number of pixels of padding from the edges of a glyph slot.
     pub padding: usize,
+    /// The size of a glyph slot in the atlas in pixels.
     pub slot_glyph_size: usize,
+    /// The size of a glyph inside a glyph slot, in pixels.
     pub glyph_size: usize,
+    /// The table containing the metadata for each glyph.
     pub glyph_metadata: HashMap<usize, GlyphMetadata>,
 }
 
