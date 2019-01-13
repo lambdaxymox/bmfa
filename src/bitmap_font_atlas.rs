@@ -1,4 +1,5 @@
 use std::collections::HashMap;
+use std::fmt;
 use std::fs::File;
 use std::io;
 use std::io::Read;
@@ -124,11 +125,39 @@ pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io:
 pub enum BmfaError {
     FileNotFound(String),
     FileExistsButCannotBeOpened(String),
-    Float32NotByteVector(String),
     FontAtlasImageNotFound(String),
     CannotLoadAtlasImage(String),
     FontMetadataNotFound(String),
     CannotLoadAtlasMetadata(String),
+}
+
+impl fmt::Display for BmfaError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        match *self {
+            BmfaError::FileNotFound(ref path) => {
+                writeln!(f, "File not found: {}", path)
+            }
+            BmfaError::FileExistsButCannotBeOpened(ref path) => {
+                writeln!(f, "The file exists, but it could not be opened: {}.", path)
+            }
+            BmfaError::FontAtlasImageNotFound(ref path) => {
+                writeln!(f, "The font atlas has no atlas image in it: {}.", path)
+            }
+            BmfaError::CannotLoadAtlasImage(ref path) => {
+                writeln!(
+                    f,
+                    "The font atlas has an atlas image but the image is corrupted: {}.",
+                    path
+                )
+            }
+            BmfaError::FontMetadataNotFound(ref path) => {
+                writeln!(f, "The font atlas has no metadata file: {}.", path)
+            }
+            BmfaError::CannotLoadAtlasMetadata(ref path) => {
+                writeln!(f, "The font atlas metadata file is corrupt: {}.", path)
+            }
+        }
+    }
 }
 
 ///
