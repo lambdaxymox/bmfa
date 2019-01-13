@@ -78,7 +78,7 @@ fn bmfa_loader_should_load_valid_bmfa_file() {
 fn bmfa_file_dimensions_should_match_buffer_length() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
     let expected = font_atlas.buffer.len();
-    let result = 4 * font_atlas.metadata.dimensions * font_atlas.metadata.dimensions;
+    let result = 4 * font_atlas.dimensions * font_atlas.dimensions;
 
     assert_eq!(result, expected);
 }
@@ -94,8 +94,8 @@ fn bmfa_file_dimensions_should_match_buffer_length() {
 #[test]
 fn bmfa_file_dimensions_should_match_width() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
-    let expected = font_atlas.metadata.columns * font_atlas.metadata.slot_glyph_size;
-    let result = font_atlas.metadata.dimensions;
+    let expected = font_atlas.columns * font_atlas.slot_glyph_size;
+    let result = font_atlas.dimensions;
 
     assert_eq!(result, expected);
 }
@@ -111,8 +111,8 @@ fn bmfa_file_dimensions_should_match_width() {
 #[test]
 fn bmfa_file_dimensions_should_match_height() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
-    let expected = font_atlas.metadata.rows * font_atlas.metadata.slot_glyph_size;
-    let result = font_atlas.metadata.dimensions;
+    let expected = font_atlas.rows * font_atlas.slot_glyph_size;
+    let result = font_atlas.dimensions;
 
     assert_eq!(result, expected);
 }
@@ -129,8 +129,8 @@ fn bmfa_file_dimensions_should_match_height() {
 #[test]
 fn bmfa_file_slot_glyph_size_should_be_sum_of_padding_and_glyph_size() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
-    let expected = font_atlas.metadata.padding + font_atlas.metadata.glyph_size;
-    let result = font_atlas.metadata.slot_glyph_size;
+    let expected = font_atlas.padding + font_atlas.glyph_size;
+    let result = font_atlas.slot_glyph_size;
 
     assert_eq!(result, expected);
 }

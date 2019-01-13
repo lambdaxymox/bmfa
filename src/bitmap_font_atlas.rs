@@ -74,15 +74,47 @@ pub struct BitmapFontAtlasMetadata {
 /// index into the bitmap image as well as the bitmap image itself.
 ///
 pub struct BitmapFontAtlas {
-    pub metadata: BitmapFontAtlasMetadata,
+    /// The width and height of the image, in pixels.
+    pub dimensions: usize,
+    /// The number of glyphs per row in the atlas.
+    pub columns: usize,
+    /// The number of glyphs per column in the atlas.
+    pub rows: usize,
+    /// The number of pixels of padding from the edges of a glyph slot.
+    pub padding: usize,
+    /// The size of a glyph slot in the atlas in pixels.
+    pub slot_glyph_size: usize,
+    /// The size of a glyph inside a glyph slot, in pixels.
+    pub glyph_size: usize,
+    /// The table containing the metadata for each glyph.
+    pub glyph_metadata: HashMap<usize, GlyphMetadata>,
+    /// The array containing the font atlas image itself.
     pub buffer: Vec<u8>,
 }
 
 impl BitmapFontAtlas {
-    fn new(metadata: BitmapFontAtlasMetadata, buffer: Vec<u8>) -> BitmapFontAtlas {
+    pub fn new(metadata: BitmapFontAtlasMetadata, buffer: Vec<u8>) -> BitmapFontAtlas {
         BitmapFontAtlas {
-            metadata: metadata,
+            dimensions: metadata.dimensions,
+            columns: metadata.columns,
+            rows: metadata.rows,
+            padding: metadata.padding,
+            slot_glyph_size: metadata.slot_glyph_size,
+            glyph_size: metadata.glyph_size,
+            glyph_metadata: metadata.glyph_metadata,
             buffer: buffer,
+        }
+    }
+
+    pub fn metadata(&self) -> BitmapFontAtlasMetadata {
+        BitmapFontAtlasMetadata {
+            dimensions: self.dimensions,
+            columns: self.columns,
+            rows: self.rows,
+            padding: self.padding,
+            slot_glyph_size: self.slot_glyph_size,
+            glyph_size: self.glyph_size,
+            glyph_metadata: self.glyph_metadata.clone(),
         }
     }
 }
@@ -96,7 +128,7 @@ pub fn write_metadata<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::R
         Err(e) => return Err(e),
     };
 
-    serde_json::to_writer_pretty(file, &atlas.metadata)?;
+    serde_json::to_writer_pretty(file, &atlas.metadata())?;
 
     Ok(())
 }
@@ -107,7 +139,7 @@ pub fn write_metadata<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::R
 pub fn write_atlas_buffer<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
     image::save_buffer(
         path, &atlas.buffer,
-        atlas.metadata.dimensions as u32, atlas.metadata.dimensions as u32, image::RGBA(8)
+        atlas.dimensions as u32, atlas.dimensions as u32, image::RGBA(8)
     )
 }
 
