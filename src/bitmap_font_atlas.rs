@@ -120,41 +120,6 @@ impl BitmapFontAtlas {
 }
 
 ///
-/// Write the metadata file that accompanies the atlas image to a file.
-///
-pub fn write_metadata<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
-    let file = match File::create(path) {
-        Ok(val) => val,
-        Err(e) => return Err(e),
-    };
-
-    serde_json::to_writer_pretty(file, &atlas.metadata())?;
-
-    Ok(())
-}
-
-///
-/// Write the atlas bitmap image to a file.
-///
-pub fn write_atlas_buffer<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
-    image::save_buffer(
-        path, &atlas.image,
-        atlas.dimensions as u32, atlas.dimensions as u32, image::RGBA(8)
-    )
-}
-
-///
-/// Write the bitmap font atlas to the disk.
-///
-pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
-    write_metadata(atlas, &path)?;
-    write_atlas_buffer(atlas, &path)?;
-
-    Ok(())
-}
-
-
-///
 /// A `BmfaError` is an error typing representing the results of the failure of
 /// a bmfa read or write operation.
 ///
@@ -230,4 +195,38 @@ pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, BmfaError> {
     })?;
 
     Ok(BitmapFontAtlas::new(metadata, atlas_image))
+}
+
+///
+/// Write the metadata file that accompanies the atlas image to a file.
+///
+pub fn write_metadata<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
+    let file = match File::create(path) {
+        Ok(val) => val,
+        Err(e) => return Err(e),
+    };
+
+    serde_json::to_writer_pretty(file, &atlas.metadata())?;
+
+    Ok(())
+}
+
+///
+/// Write the atlas bitmap image to a file.
+///
+pub fn write_atlas_buffer<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
+    image::save_buffer(
+        path, &atlas.image,
+        atlas.dimensions as u32, atlas.dimensions as u32, image::RGBA(8)
+    )
+}
+
+///
+/// Write the bitmap font atlas to the disk.
+///
+pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
+    write_metadata(atlas, &path)?;
+    write_atlas_buffer(atlas, &path)?;
+
+    Ok(())
 }
