@@ -14,7 +14,7 @@ use image::ImageDecoder;
 /// A `GlyphMetadata` struct stores the parameters necessary to represent
 /// the glyph in a bitmap font atlas.
 ///
-#[derive(Copy, Clone, Debug, Serialize, Deserialize)]
+#[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct GlyphMetadata {
     /// The unicode code point.
     pub code_point: usize,
@@ -51,7 +51,7 @@ impl GlyphMetadata {
 /// and every glyph in the font atlas, including where each glyph is located in the
 /// atlas image for rendering text.
 ///
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BitmapFontAtlasMetadata {
     /// The width and height of the image, in pixels.
     pub dimensions: usize,
