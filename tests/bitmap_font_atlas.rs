@@ -170,7 +170,7 @@ impl ReadWriteTest {
 
 fn read_write_test<P: AsRef<Path>>(expected_path: P) -> ReadWriteTest {
     let expected_atlas = bmfa::load(&expected_path).unwrap();
-    let mut buffer = vec![];
+    let buffer = vec![];
     let mut cursor = io::Cursor::new(buffer);
     bmfa::to_writer(&mut cursor, &expected_atlas).unwrap();
     let result_atlas = bmfa::from_reader(&mut cursor).unwrap();
