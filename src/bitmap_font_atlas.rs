@@ -196,6 +196,9 @@ impl Error {
     }
 }
 
+///
+/// Read in a bitmap font atlas from an external source.
+///
 pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas, Error> {
     let mut zip = zip::ZipArchive::new(reader).map_err(|e| {
         Error::new(ErrorKind::FileExistsButCannotBeOpened, Box::new(e))
@@ -230,7 +233,9 @@ pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, Error> {
     from_reader(reader)
 }
 
-
+///
+/// Write out of bitmap font atlas to a writer or buffer.
+///
 pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) -> io::Result<()> {
     let mut zip_file = zip::ZipWriter::new(writer);
     let options =
