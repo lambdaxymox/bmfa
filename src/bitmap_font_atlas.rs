@@ -16,7 +16,7 @@ use image::{ColorType, ImageDecoder};
 pub struct GlyphMetadata {
     /// The unicode code point.
     pub code_point: usize,
-    ///
+    /// The minimum offset of the glyph into the slot from the bounding box.
     pub x_min: f32,
     /// The width of the glyph, stored in [0,1].
     pub width: f32,
