@@ -1,3 +1,4 @@
+use std::fs;
 use std::fs::File;
 use std::path::Path;
 use bmfa;
@@ -141,6 +142,7 @@ fn bmfa_file_should_write_to_disk_successfully() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
     let path = Path::new("atlas.bmfa");
     let result = bmfa::write_font_atlas(&font_atlas, path);
+    fs::remove_file(path).unwrap();
 
     assert!(result.is_ok());
 }
@@ -151,6 +153,7 @@ fn bmfa_file_written_and_then_read_should_match_dimensions() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.dimensions, expected_atlas.dimensions);
 }
@@ -161,6 +164,7 @@ fn bmfa_file_written_and_then_read_should_match_columns() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.columns, expected_atlas.columns);
 }
@@ -171,6 +175,7 @@ fn bmfa_file_written_and_then_read_should_match_rows() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.rows, expected_atlas.rows);
 }
@@ -181,6 +186,7 @@ fn bmfa_file_written_and_then_read_should_match_padding() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.padding, expected_atlas.padding);
 }
@@ -191,6 +197,7 @@ fn test_file_written_and_then_read_should_match_slot_glyph_size() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.slot_glyph_size, expected_atlas.slot_glyph_size);
 }
@@ -201,6 +208,7 @@ fn bmfa_file_written_and_then_read_should_match_glyph_size() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.glyph_size, expected_atlas.glyph_size);
 }
@@ -211,6 +219,7 @@ fn bmfa_file_written_and_then_read_should_match_metadata() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.metadata(), expected_atlas.metadata());
 }
@@ -221,6 +230,7 @@ fn bmfa_file_written_and_then_read_should_match_glyph_metadata() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.glyph_metadata, expected_atlas.glyph_metadata);
 }
@@ -231,6 +241,7 @@ fn bmfa_file_written_and_then_read_should_match_atlases() {
     let path = Path::new("atlas.bmfa");
     bmfa::write_font_atlas(&expected_atlas, path).unwrap();
     let result_atlas = bmfa::load(path).unwrap();
+    fs::remove_file(path).unwrap();
 
     assert_eq!(result_atlas.image, expected_atlas.image);
 }

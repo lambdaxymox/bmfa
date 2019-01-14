@@ -4,6 +4,7 @@ use std::fmt;
 use std::fs::File;
 use std::io;
 use std::io::Read;
+use std::io::Write;
 use std::path::Path;
 
 use image::png;
@@ -225,8 +226,23 @@ pub fn write_atlas_buffer<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> i
 /// Write the bitmap font atlas to the disk.
 ///
 pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
-    write_metadata(atlas, &path)?;
-    write_atlas_buffer(atlas, &path)?;
+    // Set up the image archive.
+    let mut file_path = path.as_ref().to_path_buf();
+    file_path.set_extension("bmfa");
+    let mut file = File::create(&file_path)?;
+    let mut zip_file = zip::ZipWriter::new(file);
+    let options =
+        zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Stored);
+
+    // Write out the metadata.
+    zip_file.start_file("metadata.json", options)?;
+    serde_json::to_writer_pretty(&mut zip_file, &atlas.metadata())?;
+
+    // Write out the atlas image.
+    zip_file.start_file("atlas.png", options)?;
+    zip_file.write(&atlas.image)?;
+
+    zip_file.finish()?;
 
     Ok(())
 }
