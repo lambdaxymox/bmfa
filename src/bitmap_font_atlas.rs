@@ -199,20 +199,6 @@ pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, BmfaError> {
 }
 
 ///
-/// Write the metadata file that accompanies the atlas image to a file.
-///
-pub fn write_metadata<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
-    let file = match File::create(path) {
-        Ok(val) => val,
-        Err(e) => return Err(e),
-    };
-
-    serde_json::to_writer_pretty(file, &atlas.metadata())?;
-
-    Ok(())
-}
-
-///
 /// Write the atlas bitmap image to a file.
 ///
 pub fn write_atlas_buffer<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
