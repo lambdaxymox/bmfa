@@ -8,7 +8,7 @@ use std::io::Write;
 use std::path::Path;
 
 use image::png;
-use image::ImageDecoder;
+use image::{ColorType, ImageDecoder};
 
 
 ///
@@ -226,7 +226,10 @@ pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io:
 
     // Write out the atlas image.
     zip_file.start_file("atlas.png", options)?;
-    zip_file.write(&atlas.image)?;
+    let png_writer = png::PNGEncoder::new(&mut zip_file);
+    png_writer.encode(
+        &atlas.image, atlas.dimensions as u32, atlas.dimensions as u32, ColorType::RGBA(8)
+    )?;
 
     zip_file.finish()?;
 

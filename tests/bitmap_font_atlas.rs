@@ -2,7 +2,8 @@ use std::fs;
 use std::fs::File;
 use std::path::Path;
 use bmfa;
-use zip::ZipArchive;
+use image::png;
+use zip;
 
 const SAMPLE_FILE: &str = "samples/freemono.bmfa";
 
@@ -27,7 +28,7 @@ fn loading_a_nonexistent_bmfa_file_should_fail() {
 #[test]
 fn a_valid_bmfa_font_file_has_exactly_two_files() {
     let file = File::open(SAMPLE_FILE).unwrap();
-    let zip_file = ZipArchive::new(file).unwrap();
+    let zip_file = zip::ZipArchive::new(file).unwrap();
 
     assert_eq!(zip_file.len(), 2);
 }
@@ -39,7 +40,7 @@ fn a_valid_bmfa_font_file_has_exactly_two_files() {
 #[test]
 fn a_valid_bmfa_file_has_exactly_one_metadata_file() {
     let file = File::open(SAMPLE_FILE).unwrap();
-    let mut zip_file = ZipArchive::new(file).unwrap();
+    let mut zip_file = zip::ZipArchive::new(file).unwrap();
     let metadata_file = zip_file.by_name("metadata.json");
 
     assert!(metadata_file.is_ok());
@@ -52,7 +53,7 @@ fn a_valid_bmfa_file_has_exactly_one_metadata_file() {
 #[test]
 fn a_valid_bmfa_file_has_exactly_one_image_file() {
     let file = File::open(SAMPLE_FILE).unwrap();
-    let mut zip_file = ZipArchive::new(file).unwrap();
+    let mut zip_file = zip::ZipArchive::new(file).unwrap();
     let atlas_file = zip_file.by_name("atlas.png");
 
     assert!(atlas_file.is_ok());
