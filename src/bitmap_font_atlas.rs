@@ -258,7 +258,7 @@ pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) ->
 ///
 /// Write the bitmap font atlas to the disk.
 ///
-pub fn write_to_file<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
+pub fn write_to_file<P: AsRef<Path>>(path: P, atlas: &BitmapFontAtlas) -> io::Result<()> {
     // Set up the image archive.
     let mut file_path = path.as_ref().to_path_buf();
     file_path.set_extension("bmfa");
