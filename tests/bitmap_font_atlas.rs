@@ -136,7 +136,9 @@ fn bmfa_file_slot_glyph_size_should_be_sum_of_padding_and_glyph_size() {
     assert_eq!(result, expected);
 }
 
-
+///
+/// Given a valid bmfa file, we should be able to write it to disk.
+///
 #[test]
 fn bmfa_file_should_write_to_disk_successfully() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
@@ -180,6 +182,15 @@ fn read_write_test<P: AsRef<Path>, Q: AsRef<Path>>(_expected_path: P, _result_pa
     ReadWriteTest::new(expected_path, expected_atlas, result_path, result_atlas)
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the dimensions of the files should match.
+///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_dimensions() {
     let test = read_write_test(SAMPLE_FILE, "atlas1.bmfa");
@@ -187,6 +198,15 @@ fn bmfa_file_written_and_then_read_should_match_dimensions() {
     assert_eq!(test.result_atlas.dimensions, test.expected_atlas.dimensions);
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the columns of the files should match.
+///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_columns() {
     let test = read_write_test(SAMPLE_FILE, "atlas2.bmfa");
@@ -194,6 +214,15 @@ fn bmfa_file_written_and_then_read_should_match_columns() {
     assert_eq!(test.result_atlas.columns, test.expected_atlas.columns);
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the rows of the files should match.
+///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_rows() {
     let test = read_write_test(SAMPLE_FILE, "atlas3.bmfa");
@@ -201,6 +230,15 @@ fn bmfa_file_written_and_then_read_should_match_rows() {
     assert_eq!(test.result_atlas.rows, test.expected_atlas.rows);
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the padding of the files should match.
+///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_padding() {
     let test = read_write_test(SAMPLE_FILE, "atlas4.bmfa");
@@ -208,6 +246,15 @@ fn bmfa_file_written_and_then_read_should_match_padding() {
     assert_eq!(test.result_atlas.padding, test.expected_atlas.padding);
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the slot glyph sizes of the files should match.
+///
 #[test]
 fn test_file_written_and_then_read_should_match_slot_glyph_size() {
     let test = read_write_test(SAMPLE_FILE, "atlas5.bmfa");
@@ -215,6 +262,15 @@ fn test_file_written_and_then_read_should_match_slot_glyph_size() {
     assert_eq!(test.result_atlas.slot_glyph_size, test.expected_atlas.slot_glyph_size);
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the glyph sizes of the files should match.
+///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_glyph_size() {
     let test = read_write_test(SAMPLE_FILE, "atlas6.bmfa");
@@ -222,6 +278,15 @@ fn bmfa_file_written_and_then_read_should_match_glyph_size() {
     assert_eq!(test.result_atlas.glyph_size, test.expected_atlas.glyph_size);
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the metadata of the files should match.
+///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_metadata() {
     let test = read_write_test(SAMPLE_FILE, "atlas7.bmfa");
@@ -229,6 +294,15 @@ fn bmfa_file_written_and_then_read_should_match_metadata() {
     assert_eq!(test.result_atlas.metadata(), test.expected_atlas.metadata());
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the glyph metadata of the files should match for eachy glyph stored in the atlas.
+///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_glyph_metadata() {
     let test = read_write_test(SAMPLE_FILE, "atlas8.bmfa");
@@ -236,6 +310,16 @@ fn bmfa_file_written_and_then_read_should_match_glyph_metadata() {
     assert_eq!(test.result_atlas.glyph_metadata, test.expected_atlas.glyph_metadata);
 }
 
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the atlas images should match, they may not necessarily be identical in file size, since
+/// that can change depending on the the PNG file got compressed.
+///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_atlases() {
     let test = read_write_test(SAMPLE_FILE, "atlas9.bmfa");
