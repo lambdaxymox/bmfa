@@ -123,17 +123,17 @@ impl BitmapFontAtlas {
 /// A `BmfaError` is an error typing representing the results of the failure of
 /// a bmfa read or write operation.
 ///
-pub struct BmfaError {
+pub struct Error {
     repr: Repr,
 }
 
-impl fmt::Debug for BmfaError {
+impl fmt::Debug for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Debug::fmt( & self.repr, f)
     }
 }
 
-impl fmt::Display for BmfaError {
+impl fmt::Display for Error {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
         fmt::Display::fmt( & self.repr, f)
     }
@@ -175,15 +175,15 @@ impl fmt::Display for Repr {
     }
 }
 
-impl error::Error for BmfaError {
+impl error::Error for Error {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
         Some(&*self.repr.error)
     }
 }
 
-impl BmfaError {
-    pub fn new(kind: ErrorKind, error: Box<dyn error::Error+Send+Sync>) -> BmfaError {
-        BmfaError {
+impl Error {
+    pub fn new(kind: ErrorKind, error: Box<dyn error::Error+Send+Sync>) -> Error {
+        Error {
             repr: Repr {
                 kind: kind,
                 error: error,
@@ -196,24 +196,24 @@ impl BmfaError {
     }
 }
 
-pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas, BmfaError> {
+pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas, Error> {
     let mut zip = zip::ZipArchive::new(reader).map_err(|e| {
-        BmfaError::new(ErrorKind::FileExistsButCannotBeOpened, Box::new(e))
+        Error::new(ErrorKind::FileExistsButCannotBeOpened, Box::new(e))
     })?;
     let metadata_file = zip.by_name("metadata.json").map_err(|e| {
-        BmfaError::new(ErrorKind::FontMetadataNotFound, Box::new(e))
+        Error::new(ErrorKind::FontMetadataNotFound, Box::new(e))
     })?;
     let metadata = serde_json::from_reader(metadata_file).map_err(|e| {
-        BmfaError::new(ErrorKind::CannotLoadAtlasMetadata, Box::new(e))
+        Error::new(ErrorKind::CannotLoadAtlasMetadata, Box::new(e))
     })?;
     let atlas_file = zip.by_name("atlas.png").map_err(|e| {
-        BmfaError::new(ErrorKind::FontAtlasImageNotFound, Box::new(e))
+        Error::new(ErrorKind::FontAtlasImageNotFound, Box::new(e))
     })?;
     let png_reader = png::PNGDecoder::new(atlas_file).map_err(|e| {
-        BmfaError::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
+        Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
     let atlas_image = png_reader.read_image().map_err(|e| {
-        BmfaError::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
+        Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
 
     Ok(BitmapFontAtlas::new(metadata, atlas_image))
@@ -222,9 +222,9 @@ pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas,
 ///
 /// Load a bitmap font atlas directly from a file.
 ///
-pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, BmfaError> {
+pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, Error> {
     let reader = File::open(&path).map_err(|e| {
-        BmfaError::new(ErrorKind::FileNotFound, Box::new(e))
+        Error::new(ErrorKind::FileNotFound, Box::new(e))
     })?;
 
     from_reader(reader)
