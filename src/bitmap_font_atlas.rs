@@ -3,9 +3,7 @@ use std::error;
 use std::fmt;
 use std::fs::File;
 use std::io;
-use std::io::Read;
 use std::path::Path;
-
 use image::png;
 use image::{ColorType, ImageDecoder};
 
