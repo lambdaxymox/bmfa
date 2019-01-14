@@ -1,5 +1,6 @@
 use std::fs;
 use std::fs::File;
+use std::io;
 use std::path::Path;
 use bmfa;
 use zip;
@@ -151,35 +152,30 @@ fn bmfa_file_should_write_to_disk_successfully() {
 
 
 struct ReadWriteTest {
-    expected_path: Box<Path>,
     expected_atlas: bmfa::BitmapFontAtlas,
-    result_path: Box<Path>,
     result_atlas: bmfa::BitmapFontAtlas,
 }
 
 impl ReadWriteTest {
     fn new(
-        expected_path: &Path, expected_atlas: bmfa::BitmapFontAtlas,
-        result_path: &Path, result_atlas: bmfa::BitmapFontAtlas) -> ReadWriteTest {
+        expected_atlas: bmfa::BitmapFontAtlas,
+        result_atlas: bmfa::BitmapFontAtlas) -> ReadWriteTest {
 
         ReadWriteTest {
-            expected_path: Box::from(expected_path),
             expected_atlas: expected_atlas,
-            result_path: Box::from(result_path),
             result_atlas: result_atlas,
         }
     }
 }
 
-fn read_write_test<P: AsRef<Path>, Q: AsRef<Path>>(_expected_path: P, _result_path: Q) -> ReadWriteTest {
-    let expected_path = Path::new(_expected_path.as_ref());
-    let expected_atlas = bmfa::load(expected_path).unwrap();
-    let result_path = Path::new(_result_path.as_ref());
-    bmfa::write_to_file(result_path, &expected_atlas).unwrap();
-    let result_atlas = bmfa::load(result_path).unwrap();
-    fs::remove_file(result_path).unwrap();
+fn read_write_test<P: AsRef<Path>>(expected_path: P) -> ReadWriteTest {
+    let expected_atlas = bmfa::load(&expected_path).unwrap();
+    let mut buffer = vec![];
+    let mut cursor = io::Cursor::new(buffer);
+    bmfa::to_writer(&mut cursor, &expected_atlas).unwrap();
+    let result_atlas = bmfa::from_reader(&mut cursor).unwrap();
 
-    ReadWriteTest::new(expected_path, expected_atlas, result_path, result_atlas)
+    ReadWriteTest::new(expected_atlas, result_atlas)
 }
 
 ///
@@ -193,7 +189,7 @@ fn read_write_test<P: AsRef<Path>, Q: AsRef<Path>>(_expected_path: P, _result_pa
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_dimensions() {
-    let test = read_write_test(SAMPLE_FILE, "atlas1.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.dimensions, test.expected_atlas.dimensions);
 }
@@ -209,7 +205,7 @@ fn bmfa_file_written_and_then_read_should_match_dimensions() {
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_columns() {
-    let test = read_write_test(SAMPLE_FILE, "atlas2.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.columns, test.expected_atlas.columns);
 }
@@ -225,7 +221,7 @@ fn bmfa_file_written_and_then_read_should_match_columns() {
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_rows() {
-    let test = read_write_test(SAMPLE_FILE, "atlas3.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.rows, test.expected_atlas.rows);
 }
@@ -241,7 +237,7 @@ fn bmfa_file_written_and_then_read_should_match_rows() {
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_padding() {
-    let test = read_write_test(SAMPLE_FILE, "atlas4.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.padding, test.expected_atlas.padding);
 }
@@ -257,7 +253,7 @@ fn bmfa_file_written_and_then_read_should_match_padding() {
 ///
 #[test]
 fn test_file_written_and_then_read_should_match_slot_glyph_size() {
-    let test = read_write_test(SAMPLE_FILE, "atlas5.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.slot_glyph_size, test.expected_atlas.slot_glyph_size);
 }
@@ -273,7 +269,7 @@ fn test_file_written_and_then_read_should_match_slot_glyph_size() {
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_glyph_size() {
-    let test = read_write_test(SAMPLE_FILE, "atlas6.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.glyph_size, test.expected_atlas.glyph_size);
 }
@@ -289,7 +285,7 @@ fn bmfa_file_written_and_then_read_should_match_glyph_size() {
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_metadata() {
-    let test = read_write_test(SAMPLE_FILE, "atlas7.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.metadata(), test.expected_atlas.metadata());
 }
@@ -305,7 +301,7 @@ fn bmfa_file_written_and_then_read_should_match_metadata() {
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_glyph_metadata() {
-    let test = read_write_test(SAMPLE_FILE, "atlas8.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.glyph_metadata, test.expected_atlas.glyph_metadata);
 }
@@ -322,7 +318,7 @@ fn bmfa_file_written_and_then_read_should_match_glyph_metadata() {
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_atlases() {
-    let test = read_write_test(SAMPLE_FILE, "atlas9.bmfa");
+    let test = read_write_test(SAMPLE_FILE);
 
     assert_eq!(test.result_atlas.image, test.expected_atlas.image);
 }
