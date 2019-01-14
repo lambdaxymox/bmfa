@@ -142,7 +142,7 @@ fn bmfa_file_slot_glyph_size_should_be_sum_of_padding_and_glyph_size() {
 fn bmfa_file_should_write_to_disk_successfully() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
     let path = Path::new("atlas.bmfa");
-    let result = bmfa::write_font_atlas(&font_atlas, path);
+    let result = bmfa::write_to_file(&font_atlas, path);
     fs::remove_file(path).unwrap();
 
     assert!(result.is_ok());
@@ -174,7 +174,7 @@ fn read_write_test() -> ReadWriteTest {
     let expected_path = Path::new(SAMPLE_FILE);
     let expected_atlas = bmfa::load(expected_path).unwrap();
     let result_path = Path::new("atlas.bmfa");
-    bmfa::write_font_atlas(&expected_atlas, result_path).unwrap();
+    bmfa::write_to_file(&expected_atlas, result_path).unwrap();
     let result_atlas = bmfa::load(result_path).unwrap();
     fs::remove_file(result_path).unwrap();
 

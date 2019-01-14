@@ -123,82 +123,115 @@ impl BitmapFontAtlas {
 /// A `BmfaError` is an error typing representing the results of the failure of
 /// a bmfa read or write operation.
 ///
-#[derive(Debug, Clone)]
-pub enum BmfaError {
-    FileNotFound(String),
-    FileExistsButCannotBeOpened(String),
-    FontAtlasImageNotFound(String),
-    CannotLoadAtlasImage(String),
-    FontMetadataNotFound(String),
-    CannotLoadAtlasMetadata(String),
+pub struct BmfaError {
+    repr: Repr,
+}
+
+impl fmt::Debug for BmfaError {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Debug::fmt( & self.repr, f)
+    }
 }
 
 impl fmt::Display for BmfaError {
     fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        fmt::Display::fmt( & self.repr, f)
+    }
+}
+
+#[derive(Clone, Copy, Debug, Eq, Hash, Ord, PartialEq, PartialOrd)]
+pub enum ErrorKind {
+    FileNotFound,
+    FileExistsButCannotBeOpened,
+    FontAtlasImageNotFound,
+    CannotLoadAtlasImage,
+    FontMetadataNotFound,
+    CannotLoadAtlasMetadata,
+}
+
+impl ErrorKind {
+    fn as_str(&self) -> &str {
         match *self {
-            BmfaError::FileNotFound(ref path) => {
-                writeln!(f, "File not found: {}", path)
-            }
-            BmfaError::FileExistsButCannotBeOpened(ref path) => {
-                writeln!(f, "The file exists, but it could not be opened: {}.", path)
-            }
-            BmfaError::FontAtlasImageNotFound(ref path) => {
-                writeln!(f, "The font atlas has no atlas image in it: {}.", path)
-            }
-            BmfaError::CannotLoadAtlasImage(ref path) => {
-                writeln!(
-                    f,
-                    "The font atlas has an atlas image but the image is corrupted: {}.",
-                    path
-                )
-            }
-            BmfaError::FontMetadataNotFound(ref path) => {
-                writeln!(f, "The font atlas has no metadata file: {}.", path)
-            }
-            BmfaError::CannotLoadAtlasMetadata(ref path) => {
-                writeln!(f, "The font atlas metadata file is corrupt: {}.", path)
-            }
+            ErrorKind::FileNotFound => "File not found",
+            ErrorKind::FileExistsButCannotBeOpened => "The file exists but cannot be opened",
+            ErrorKind::FontAtlasImageNotFound => "The font atlas contains no atlas image",
+            ErrorKind::CannotLoadAtlasImage => "The font atlas contains an atlas image but it cannot be loaded",
+            ErrorKind::FontMetadataNotFound => "The font atlas contains no metadata",
+            ErrorKind::CannotLoadAtlasMetadata => "The font atlas metadata is corrupt",
         }
+    }
+}
+
+#[derive(Debug)]
+struct Repr {
+    kind: ErrorKind,
+    error: Box<dyn error::Error + Send + Sync>,
+}
+
+impl fmt::Display for Repr {
+    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {
+        let kind_str = self.kind.as_str();
+        write!(f, "{}: {}", kind_str, self.error)
     }
 }
 
 impl error::Error for BmfaError {
     fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        None
+        Some(&*self.repr.error)
     }
+}
+
+impl BmfaError {
+    pub fn new(kind: ErrorKind, error: Box<dyn error::Error+Send+Sync>) -> BmfaError {
+        BmfaError {
+            repr: Repr {
+                kind: kind,
+                error: error,
+            }
+        }
+    }
+
+    pub fn kind(&self) -> ErrorKind {
+        self.repr.kind
+    }
+}
+
+pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas, BmfaError> {
+    let mut zip = zip::ZipArchive::new(reader).map_err(|e| {
+        BmfaError::new(ErrorKind::FileExistsButCannotBeOpened, Box::new(e))
+    })?;
+    let metadata_file = zip.by_name("metadata.json").map_err(|e| {
+        BmfaError::new(ErrorKind::FontMetadataNotFound, Box::new(e))
+    })?;
+    let metadata = serde_json::from_reader(metadata_file).map_err(|e| {
+        BmfaError::new(ErrorKind::CannotLoadAtlasMetadata, Box::new(e))
+    })?;
+    let atlas_file = zip.by_name("atlas.png").map_err(|e| {
+        BmfaError::new(ErrorKind::FontAtlasImageNotFound, Box::new(e))
+    })?;
+    let png_reader = png::PNGDecoder::new(atlas_file).map_err(|e| {
+        BmfaError::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
+    })?;
+    let atlas_image = png_reader.read_image().map_err(|e| {
+        BmfaError::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
+    })?;
+
+    Ok(BitmapFontAtlas::new(metadata, atlas_image))
 }
 
 ///
 /// Load a bitmap font atlas directly from a file.
 ///
 pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, BmfaError> {
-    let reader = File::open(&path).map_err(|_e| {
-        BmfaError::FileNotFound(format!("{}", path.as_ref().display()))
-    })?;
-    let mut zip = zip::ZipArchive::new(reader).map_err(|_e| {
-        BmfaError::FileExistsButCannotBeOpened(format!("{}", path.as_ref().display()))
-    })?;
-    let metadata_file = zip.by_name("metadata.json").map_err(|_e| {
-        BmfaError::FontMetadataNotFound(format!("{}", path.as_ref().display()))
-    })?;
-    let metadata = serde_json::from_reader(metadata_file).map_err(|_e| {
-        BmfaError::CannotLoadAtlasMetadata(format!("{}", path.as_ref().display()))
-    })?;
-    let atlas_file = zip.by_name("atlas.png").map_err(|_e| {
-        BmfaError::FontAtlasImageNotFound(format!("{}", path.as_ref().display()))
-    })?;
-    let png_reader = png::PNGDecoder::new(atlas_file).map_err(|_e| {
-        BmfaError::CannotLoadAtlasImage(format!("{}", path.as_ref().display()))
-    })?;
-    let atlas_image = png_reader.read_image().map_err(|_e| {
-        BmfaError::CannotLoadAtlasImage(format!("{}", path.as_ref().display()))
+    let reader = File::open(&path).map_err(|e| {
+        BmfaError::new(ErrorKind::FileNotFound, Box::new(e))
     })?;
 
-    Ok(BitmapFontAtlas::new(metadata, atlas_image))
+    from_reader(reader)
 }
 
 
-pub fn write_to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) -> io::Result<()> {
+pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) -> io::Result<()> {
     let mut zip_file = zip::ZipWriter::new(writer);
     let options =
         zip::write::FileOptions::default().compression_method(zip::CompressionMethod::Stored);
@@ -222,11 +255,11 @@ pub fn write_to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtl
 ///
 /// Write the bitmap font atlas to the disk.
 ///
-pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
+pub fn write_to_file<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
     // Set up the image archive.
     let mut file_path = path.as_ref().to_path_buf();
     file_path.set_extension("bmfa");
     let file = File::create(&file_path)?;
 
-    write_to_writer(file, atlas)
+    to_writer(file, atlas)
 }
