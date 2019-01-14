@@ -2,7 +2,6 @@ use std::fs;
 use std::fs::File;
 use std::path::Path;
 use bmfa;
-use image::png;
 use zip;
 
 const SAMPLE_FILE: &str = "samples/freemono.bmfa";
