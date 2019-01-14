@@ -236,7 +236,7 @@ pub fn write_font_atlas<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io:
     // Set up the image archive.
     let mut file_path = path.as_ref().to_path_buf();
     file_path.set_extension("bmfa");
-    let mut file = File::create(&file_path)?;
+    let file = File::create(&file_path)?;
 
     write_to_writer(file, atlas)
 }
