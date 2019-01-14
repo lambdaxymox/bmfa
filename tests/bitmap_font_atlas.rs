@@ -173,8 +173,8 @@ impl ReadWriteTest {
 fn read_write_test() -> ReadWriteTest {
     let expected_path = Path::new(SAMPLE_FILE);
     let expected_atlas = bmfa::load(expected_path).unwrap();
-    bmfa::write_font_atlas(&expected_atlas, expected_path).unwrap();
     let result_path = Path::new("atlas.bmfa");
+    bmfa::write_font_atlas(&expected_atlas, result_path).unwrap();
     let result_atlas = bmfa::load(result_path).unwrap();
     fs::remove_file(result_path).unwrap();
 
