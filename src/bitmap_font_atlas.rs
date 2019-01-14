@@ -197,16 +197,6 @@ pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, BmfaError> {
     Ok(BitmapFontAtlas::new(metadata, atlas_image))
 }
 
-///
-/// Write the atlas bitmap image to a file.
-///
-pub fn write_atlas_buffer<P: AsRef<Path>>(atlas: &BitmapFontAtlas, path: P) -> io::Result<()> {
-    image::save_buffer(
-        path, &atlas.image,
-        atlas.dimensions as u32, atlas.dimensions as u32, image::RGBA(8)
-    )
-}
-
 
 pub fn write_to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) -> io::Result<()> {
     let mut zip_file = zip::ZipWriter::new(writer);
