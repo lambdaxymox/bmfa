@@ -3,6 +3,7 @@ use std::error;
 use std::fmt;
 use std::fs::File;
 use std::io;
+use std::mem;
 use std::path::Path;
 use image::png;
 use image::{ColorType, ImageDecoder};
@@ -67,6 +68,58 @@ pub struct BitmapFontAtlasMetadata {
     pub glyph_metadata: HashMap<usize, GlyphMetadata>,
 }
 
+#[derive(Copy, Clone, Eq, PartialEq, Debug)]
+pub struct Rgba {
+    pub r: u8,
+    pub g: u8,
+    pub b: u8,
+    pub a: u8,
+}
+
+impl Rgba {
+    #[inline]
+    pub fn new(r: u8, g: u8, b: u8, a: u8) -> Rgba {
+        Rgba { r, g, b, a }
+    }
+}
+
+#[derive(Clone, Debug, Eq, PartialEq)]
+pub struct BitmapFontAtlasImage {
+    data: Vec<u8>,
+}
+
+impl BitmapFontAtlasImage {
+    fn new(data: Vec<u8>) -> BitmapFontAtlasImage {
+        BitmapFontAtlasImage {
+            data: data,
+        }
+    }
+
+    #[inline]
+    pub fn as_ptr(&self) -> *const u8 {
+        &self.data[0]
+    }
+
+    pub fn len_bytes(&self) -> usize {
+        self.data.len()
+    }
+}
+/*
+impl AsRef<[Rgba]> for BitmapFontAtlasImage {
+    #[inline]
+    fn as_ref(&self) -> &[Rgba] {
+        &self.data
+    }
+}
+*/
+
+impl AsRef<[u8]> for BitmapFontAtlasImage {
+    #[inline]
+    fn as_ref(&self) -> &[u8] {
+        &self.data
+    }
+}
+
 ///
 /// A `BitmapFontAtlas` is a bitmapped font sheet. It contains the glyph parameters necessary to
 /// index into the bitmap image as well as the bitmap image itself.
@@ -87,11 +140,11 @@ pub struct BitmapFontAtlas {
     /// The table containing the metadata for each glyph.
     pub glyph_metadata: HashMap<usize, GlyphMetadata>,
     /// The array containing the font atlas image itself.
-    pub image: Vec<u8>,
+    pub image: BitmapFontAtlasImage,
 }
 
 impl BitmapFontAtlas {
-    pub fn new(metadata: BitmapFontAtlasMetadata, image: Vec<u8>) -> BitmapFontAtlas {
+    pub fn new(metadata: BitmapFontAtlasMetadata, image: BitmapFontAtlasImage) -> BitmapFontAtlas {
         BitmapFontAtlas {
             dimensions: metadata.dimensions,
             columns: metadata.columns,
@@ -114,6 +167,22 @@ impl BitmapFontAtlas {
             glyph_size: self.glyph_size,
             glyph_metadata: self.glyph_metadata.clone(),
         }
+    }
+}
+
+/*
+impl AsRef<[Rgba]> for BitmapFontAtlasImage {
+    #[inline]
+    fn as_ref(&self) -> &[Rgba] {
+        &self.data
+    }
+}
+*/
+
+impl AsRef<[u8]> for BitmapFontAtlas {
+    #[inline]
+    fn as_ref(&self) -> &[u8] {
+        self.image.as_ref()
     }
 }
 
@@ -213,9 +282,11 @@ pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas,
     let png_reader = png::PNGDecoder::new(atlas_file).map_err(|e| {
         Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
-    let atlas_image = png_reader.read_image().map_err(|e| {
+    let image = png_reader.read_image().map_err(|e| {
         Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
+
+    let atlas_image = BitmapFontAtlasImage::new(image);
 
     Ok(BitmapFontAtlas::new(metadata, atlas_image))
 }
@@ -247,7 +318,7 @@ pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) ->
     zip_file.start_file("atlas.png", options)?;
     let png_writer = png::PNGEncoder::new(&mut zip_file);
     png_writer.encode(
-        &atlas.image, atlas.dimensions as u32, atlas.dimensions as u32, ColorType::RGBA(8)
+        atlas.image.as_ref(), atlas.dimensions as u32, atlas.dimensions as u32, ColorType::RGBA(8)
     )?;
 
     zip_file.finish()?;
