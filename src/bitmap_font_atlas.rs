@@ -226,6 +226,9 @@ impl BitmapFontAtlasBuilder {
         }
     }
 
+    ///
+    /// Build the font atlas and consume the builder.
+    ///
     fn build(mut self) -> BitmapFontAtlas {
         // If the origin is declared as the bottom left, we must flip the image since the
         // PNG image format indexes the image starting from the top left corner
@@ -378,11 +381,29 @@ pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) ->
     zip_file.start_file("metadata.json", options)?;
     serde_json::to_writer_pretty(&mut zip_file, &atlas.metadata())?;
 
+    // if the origin is the bottom left of the image, we need to flip the image back over
+    // before writing it out.
+    let mut image = atlas.image.clone();
+    if atlas.origin == Origin::BottomLeft {
+        if image.origin == Origin::BottomLeft {
+            let height = image.height;
+            let width_in_bytes = 4 * image.width;
+            let half_height = image.height / 2;
+            for row in 0..half_height {
+                for col in 0..width_in_bytes {
+                    let temp = image.data[row * width_in_bytes + col];
+                    image.data[row * width_in_bytes + col] = image.data[((height - row - 1) * width_in_bytes) + col];
+                    image.data[((height - row - 1) * width_in_bytes) + col] = temp;
+                }
+            }
+        }
+    }
+
     // Write out the atlas image.
     zip_file.start_file("atlas.png", options)?;
     let png_writer = png::PNGEncoder::new(&mut zip_file);
     png_writer.encode(
-        atlas.image.as_ref(), atlas.dimensions as u32, atlas.dimensions as u32, ColorType::RGBA(8)
+        image.as_ref(), atlas.dimensions as u32, atlas.dimensions as u32, ColorType::RGBA(8)
     )?;
 
     zip_file.finish()?;
