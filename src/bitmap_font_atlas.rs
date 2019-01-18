@@ -102,12 +102,29 @@ pub struct BitmapFontAtlasImage {
 
 impl BitmapFontAtlasImage {
     fn new(data: Vec<u8>, width: usize, height: usize, origin: Origin) -> BitmapFontAtlasImage {
-        BitmapFontAtlasImage {
+        let mut atlas_image = BitmapFontAtlasImage {
             origin: origin,
             width: width,
             height: height,
             data: data,
+        };
+
+        // If the origin is declared as the bottom left, we must flip the image since the
+        // PNG image format indexes the image starting from the top left corner
+        // going right and downwards.
+        if origin == Origin::BottomLeft {
+            let width_in_bytes = 4 * width;
+            let half_height = height / 2;
+            for row in 0..half_height {
+                for col in 0..width_in_bytes {
+                    let temp = atlas_image.data[row * width_in_bytes + col];
+                    atlas_image.data[row * width_in_bytes + col] = atlas_image.data[((height - row - 1) * width_in_bytes) + col];
+                    atlas_image.data[((height - row - 1) * width_in_bytes) + col] = temp;
+                }
+            }
         }
+
+        atlas_image
     }
 
     ///
