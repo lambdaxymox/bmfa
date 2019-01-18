@@ -101,7 +101,7 @@ pub struct BitmapFontAtlasImage {
 }
 
 impl BitmapFontAtlasImage {
-    fn new(data: Vec<u8>, width: usize, height: usize, origin: Origin) -> BitmapFontAtlasImage {
+    pub fn new(data: Vec<u8>, width: usize, height: usize, origin: Origin) -> BitmapFontAtlasImage {
         BitmapFontAtlasImage {
             origin: origin,
             width: width,
