@@ -384,17 +384,15 @@ pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) ->
     // if the origin is the bottom left of the image, we need to flip the image back over
     // before writing it out.
     let mut image = atlas.image.clone();
-    if atlas.origin == Origin::BottomLeft {
-        if image.origin == Origin::BottomLeft {
-            let height = image.height;
-            let width_in_bytes = 4 * image.width;
-            let half_height = image.height / 2;
-            for row in 0..half_height {
-                for col in 0..width_in_bytes {
-                    let temp = image.data[row * width_in_bytes + col];
-                    image.data[row * width_in_bytes + col] = image.data[((height - row - 1) * width_in_bytes) + col];
-                    image.data[((height - row - 1) * width_in_bytes) + col] = temp;
-                }
+    if image.origin == Origin::BottomLeft {
+        let height = image.height;
+        let width_in_bytes = 4 * image.width;
+        let half_height = image.height / 2;
+        for row in 0..half_height {
+            for col in 0..width_in_bytes {
+                let temp = image.data[row * width_in_bytes + col];
+                image.data[row * width_in_bytes + col] = image.data[((height - row - 1) * width_in_bytes) + col];
+                image.data[((height - row - 1) * width_in_bytes) + col] = temp;
             }
         }
     }
