@@ -276,7 +276,7 @@ impl error::Error for Error {
 }
 
 impl Error {
-    pub fn new(kind: ErrorKind, error: Box<dyn error::Error+Send+Sync>) -> Error {
+    pub fn new(kind: ErrorKind, error: Box<dyn error::Error + Send + Sync>) -> Error {
         Error {
             repr: Repr {
                 kind: kind,
