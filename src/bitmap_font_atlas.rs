@@ -3,7 +3,6 @@ use std::error;
 use std::fmt;
 use std::fs::File;
 use std::io;
-use std::mem;
 use std::path::Path;
 use image::png;
 use image::{ColorType, ImageDecoder};
@@ -45,6 +44,12 @@ impl GlyphMetadata {
     }
 }
 
+#[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
+pub enum Origin {
+    TopLeft,
+    BottomLeft,
+}
+
 ///
 /// The `BitmapFontAtlasMetadata` struct holds all the information about the image
 /// and every glyph in the font atlas, including where each glyph is located in the
@@ -52,6 +57,8 @@ impl GlyphMetadata {
 ///
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BitmapFontAtlasMetadata {
+    /// The origin of the image. This determines the coordinate system and orientation of the image.
+    pub origin: Origin,
     /// The width and height of the image, in pixels.
     pub dimensions: usize,
     /// The number of glyphs per row in the atlas.
@@ -68,31 +75,32 @@ pub struct BitmapFontAtlasMetadata {
     pub glyph_metadata: HashMap<usize, GlyphMetadata>,
 }
 
-#[derive(Copy, Clone, Eq, PartialEq, Debug)]
-pub struct Rgba {
-    pub r: u8,
-    pub g: u8,
-    pub b: u8,
-    pub a: u8,
-}
-
-impl Rgba {
-    #[inline]
-    pub fn new(r: u8, g: u8, b: u8, a: u8) -> Rgba {
-        Rgba { r, g, b, a }
-    }
-}
-
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BitmapFontAtlasImage {
+    origin: Origin,
+    width: usize,
+    height: usize,
     data: Vec<u8>,
 }
 
 impl BitmapFontAtlasImage {
-    fn new(data: Vec<u8>) -> BitmapFontAtlasImage {
+    fn new(data: Vec<u8>, width: usize, height: usize, origin: Origin) -> BitmapFontAtlasImage {
         BitmapFontAtlasImage {
+            origin: origin,
+            width: width,
+            height: height,
             data: data,
         }
+    }
+
+    #[inline]
+    pub fn width(&self) -> usize {
+        self.width
+    }
+
+    #[inline]
+    fn height(&self) -> usize {
+        self.height
     }
 
     #[inline]
@@ -104,14 +112,6 @@ impl BitmapFontAtlasImage {
         self.data.len()
     }
 }
-/*
-impl AsRef<[Rgba]> for BitmapFontAtlasImage {
-    #[inline]
-    fn as_ref(&self) -> &[Rgba] {
-        &self.data
-    }
-}
-*/
 
 impl AsRef<[u8]> for BitmapFontAtlasImage {
     #[inline]
@@ -125,6 +125,8 @@ impl AsRef<[u8]> for BitmapFontAtlasImage {
 /// index into the bitmap image as well as the bitmap image itself.
 ///
 pub struct BitmapFontAtlas {
+    /// The origin of the image. This determines the coordinate system and orientation of the image.
+    pub origin: Origin,
     /// The width and height of the image, in pixels.
     pub dimensions: usize,
     /// The number of glyphs per row in the atlas.
@@ -146,6 +148,7 @@ pub struct BitmapFontAtlas {
 impl BitmapFontAtlas {
     pub fn new(metadata: BitmapFontAtlasMetadata, image: BitmapFontAtlasImage) -> BitmapFontAtlas {
         BitmapFontAtlas {
+            origin: metadata.origin,
             dimensions: metadata.dimensions,
             columns: metadata.columns,
             rows: metadata.rows,
@@ -159,6 +162,7 @@ impl BitmapFontAtlas {
 
     pub fn metadata(&self) -> BitmapFontAtlasMetadata {
         BitmapFontAtlasMetadata {
+            origin: self.origin,
             dimensions: self.dimensions,
             columns: self.columns,
             rows: self.rows,
@@ -169,15 +173,6 @@ impl BitmapFontAtlas {
         }
     }
 }
-
-/*
-impl AsRef<[Rgba]> for BitmapFontAtlasImage {
-    #[inline]
-    fn as_ref(&self) -> &[Rgba] {
-        &self.data
-    }
-}
-*/
 
 impl AsRef<[u8]> for BitmapFontAtlas {
     #[inline]
@@ -273,7 +268,7 @@ pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas,
     let metadata_file = zip.by_name("metadata.json").map_err(|e| {
         Error::new(ErrorKind::FontMetadataNotFound, Box::new(e))
     })?;
-    let metadata = serde_json::from_reader(metadata_file).map_err(|e| {
+    let metadata: BitmapFontAtlasMetadata = serde_json::from_reader(metadata_file).map_err(|e| {
         Error::new(ErrorKind::CannotLoadAtlasMetadata, Box::new(e))
     })?;
     let atlas_file = zip.by_name("atlas.png").map_err(|e| {
@@ -282,11 +277,12 @@ pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas,
     let png_reader = png::PNGDecoder::new(atlas_file).map_err(|e| {
         Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
+    let (width, height) = png_reader.dimensions();
     let image = png_reader.read_image().map_err(|e| {
         Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
 
-    let atlas_image = BitmapFontAtlasImage::new(image);
+    let atlas_image = BitmapFontAtlasImage::new(image, width as usize, height as usize, metadata.origin);
 
     Ok(BitmapFontAtlas::new(metadata, atlas_image))
 }
@@ -330,10 +326,11 @@ pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) ->
 /// Write the bitmap font atlas to the disk.
 ///
 pub fn write_to_file<P: AsRef<Path>>(path: P, atlas: &BitmapFontAtlas) -> io::Result<()> {
-    // Set up the image archive.
+    // Set up the image zip archive.
     let mut file_path = path.as_ref().to_path_buf();
     file_path.set_extension("bmfa");
     let file = File::create(&file_path)?;
 
+    // Write out the atlas contents.
     to_writer(file, atlas)
 }
