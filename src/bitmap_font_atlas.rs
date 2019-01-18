@@ -44,9 +44,18 @@ impl GlyphMetadata {
     }
 }
 
+///
+/// The `Origin` parameter determines which part of the underlying font atlas image is considered
+/// the origin of the image. That is, when trying to render the font atlas in a graphics application,
+/// this parameter tells the BMFA parser how to format the atlas image for rendering.
+///
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Origin {
+    /// The atlas image starts in the top left corner of the image, with the x-axis pointing right,
+    /// and the y-axis pointing down.
     TopLeft,
+    /// The atlas image starts in the bottom right corner of the image, with the x-axis pointing right,
+    /// and the y-axis pointing up.
     BottomLeft,
 }
 
