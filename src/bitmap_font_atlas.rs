@@ -84,11 +84,19 @@ pub struct BitmapFontAtlasMetadata {
     pub glyph_metadata: HashMap<usize, GlyphMetadata>,
 }
 
+///
+/// A `BitmapFontAtlasImage` represents the underlying bitmapped image containing the
+/// font glyph images.
+///
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BitmapFontAtlasImage {
+    /// The coordinate origin and coordinate basis for the image.
     origin: Origin,
+    /// The width of the image, in pixels.
     width: usize,
+    /// The height of the image, in pixels.
     height: usize,
+    /// The underlying raw image data.
     data: Vec<u8>,
 }
 
@@ -102,21 +110,33 @@ impl BitmapFontAtlasImage {
         }
     }
 
+    ///
+    /// Return the width of the image in pixels.
+    ///
     #[inline]
     pub fn width(&self) -> usize {
         self.width
     }
 
+    ///
+    /// Return the height of the image in pixels.
+    ///
     #[inline]
     fn height(&self) -> usize {
         self.height
     }
 
+    ///
+    /// Return a pointer to the underlying image data.
+    ///
     #[inline]
     pub fn as_ptr(&self) -> *const u8 {
         &self.data[0]
     }
 
+    ///
+    /// The size of the image, in bytes.
+    ///
     pub fn len_bytes(&self) -> usize {
         self.data.len()
     }
@@ -169,6 +189,9 @@ impl BitmapFontAtlas {
         }
     }
 
+    ///
+    /// Generate the metadata for the font atlas.
+    ///
     pub fn metadata(&self) -> BitmapFontAtlasMetadata {
         BitmapFontAtlasMetadata {
             origin: self.origin,
