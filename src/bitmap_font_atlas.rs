@@ -102,29 +102,12 @@ pub struct BitmapFontAtlasImage {
 
 impl BitmapFontAtlasImage {
     fn new(data: Vec<u8>, width: usize, height: usize, origin: Origin) -> BitmapFontAtlasImage {
-        let mut atlas_image = BitmapFontAtlasImage {
+        BitmapFontAtlasImage {
             origin: origin,
             width: width,
             height: height,
             data: data,
-        };
-
-        // If the origin is declared as the bottom left, we must flip the image since the
-        // PNG image format indexes the image starting from the top left corner
-        // going right and downwards.
-        if origin == Origin::BottomLeft {
-            let width_in_bytes = 4 * width;
-            let half_height = height / 2;
-            for row in 0..half_height {
-                for col in 0..width_in_bytes {
-                    let temp = atlas_image.data[row * width_in_bytes + col];
-                    atlas_image.data[row * width_in_bytes + col] = atlas_image.data[((height - row - 1) * width_in_bytes) + col];
-                    atlas_image.data[((height - row - 1) * width_in_bytes) + col] = temp;
-                }
-            }
         }
-
-        atlas_image
     }
 
     ///
@@ -230,6 +213,40 @@ impl AsRef<[u8]> for BitmapFontAtlas {
     }
 }
 
+struct BitmapFontAtlasBuilder {
+    metadata: BitmapFontAtlasMetadata,
+    image: BitmapFontAtlasImage,
+}
+
+impl BitmapFontAtlasBuilder {
+    fn new(metadata: BitmapFontAtlasMetadata, image: BitmapFontAtlasImage) -> BitmapFontAtlasBuilder {
+        BitmapFontAtlasBuilder {
+            metadata: metadata,
+            image: image,
+        }
+    }
+
+    fn build(mut self) -> BitmapFontAtlas {
+        // If the origin is declared as the bottom left, we must flip the image since the
+        // PNG image format indexes the image starting from the top left corner
+        // going right and downwards.
+        if self.metadata.origin == Origin::BottomLeft {
+            let height = self.image.height;
+            let width_in_bytes = 4 * self.image.width;
+            let half_height = self.image.height / 2;
+            for row in 0..half_height {
+                for col in 0..width_in_bytes {
+                    let temp = self.image.data[row * width_in_bytes + col];
+                    self.image.data[row * width_in_bytes + col] = self.image.data[((height - row - 1) * width_in_bytes) + col];
+                    self.image.data[((height - row - 1) * width_in_bytes) + col] = temp;
+                }
+            }
+        }
+
+        BitmapFontAtlas::new(self.metadata, self.image)
+    }
+}
+
 ///
 /// A `BmfaError` is an error typing representing the results of the failure of
 /// a bmfa read or write operation.
@@ -330,12 +347,12 @@ pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas,
     let image = png_reader.read_image().map_err(|e| {
         Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
-
     let atlas_image = BitmapFontAtlasImage::new(
         image, width as usize, height as usize, metadata.origin
     );
+    let builder = BitmapFontAtlasBuilder::new(metadata, atlas_image);
 
-    Ok(BitmapFontAtlas::new(metadata, atlas_image))
+    Ok(builder.build())
 }
 
 ///
