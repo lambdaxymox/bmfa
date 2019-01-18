@@ -314,7 +314,9 @@ pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas,
         Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
 
-    let atlas_image = BitmapFontAtlasImage::new(image, width as usize, height as usize, metadata.origin);
+    let atlas_image = BitmapFontAtlasImage::new(
+        image, width as usize, height as usize, metadata.origin
+    );
 
     Ok(BitmapFontAtlas::new(metadata, atlas_image))
 }
