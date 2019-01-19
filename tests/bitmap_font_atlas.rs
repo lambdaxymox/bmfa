@@ -185,7 +185,23 @@ fn read_write_test<P: AsRef<Path>>(expected_path: P) -> ReadWriteTest {
 /// ```
 /// read(write(read(file1), file2)) == read(file2)
 /// ```
-/// Here, the dimensions of the files should match.
+/// Here, the heights in pixels of the files should match.
+///
+#[test]
+fn bmfa_file_written_and_then_read_should_match_heights() {
+    let test = read_write_test(SAMPLE_FILE);
+
+    assert_eq!(test.result_atlas.height, test.expected_atlas.height);
+}
+
+///
+/// Given an existing valid bmfa file, if we load it, write it to a new file, and read the
+/// new file back, then the file contents should match. That is, given a bitmap font atlas,
+/// reading and writing should satisfy the relation
+/// ```
+/// read(write(read(file1), file2)) == read(file2)
+/// ```
+/// Here, the widths in pixels of the files should match.
 ///
 #[test]
 fn bmfa_file_written_and_then_read_should_match_widths() {
