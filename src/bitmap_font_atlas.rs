@@ -74,8 +74,10 @@ pub enum Origin {
 pub struct BitmapFontAtlasMetadata {
     /// The origin of the image. This determines the coordinate system and orientation of the image.
     pub origin: Origin,
-    /// The width and height of the image, in pixels.
-    pub dimensions: usize,
+    /// The width of the image, in pixels.
+    pub width: usize,
+    /// The height of the image, in pixels.
+    pub height: usize,
     /// The number of glyphs per row in the atlas.
     pub columns: usize,
     /// The number of glyphs per column in the atlas.
@@ -162,8 +164,10 @@ impl AsRef<[u8]> for BitmapFontAtlasImage {
 pub struct BitmapFontAtlas {
     /// The origin of the image. This determines the coordinate system and orientation of the image.
     pub origin: Origin,
-    /// The width and height of the image, in pixels.
-    pub dimensions: usize,
+    /// The width of the image, in pixels.
+    pub width: usize,
+    /// The height of the image, in pixels.
+    pub height: usize,
     /// The number of glyphs per row in the atlas.
     pub columns: usize,
     /// The number of glyphs per column in the atlas.
@@ -184,7 +188,8 @@ impl BitmapFontAtlas {
     pub fn new(metadata: BitmapFontAtlasMetadata, image: BitmapFontAtlasImage) -> BitmapFontAtlas {
         BitmapFontAtlas {
             origin: metadata.origin,
-            dimensions: metadata.dimensions,
+            width: metadata.width,
+            height: metadata.height,
             columns: metadata.columns,
             rows: metadata.rows,
             padding: metadata.padding,
@@ -201,7 +206,8 @@ impl BitmapFontAtlas {
     pub fn metadata(&self) -> BitmapFontAtlasMetadata {
         BitmapFontAtlasMetadata {
             origin: self.origin,
-            dimensions: self.dimensions,
+            width: self.width,
+            height: self.height,
             columns: self.columns,
             rows: self.rows,
             padding: self.padding,
@@ -407,7 +413,7 @@ pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) ->
     zip_file.start_file("atlas.png", options)?;
     let png_writer = png::PNGEncoder::new(&mut zip_file);
     png_writer.encode(
-        image.as_ref(), atlas.dimensions as u32, atlas.dimensions as u32, ColorType::RGBA(8)
+        image.as_ref(), atlas.width as u32, atlas.height as u32, ColorType::RGBA(8)
     )?;
 
     zip_file.finish()?;

@@ -80,7 +80,7 @@ fn bmfa_loader_should_load_valid_bmfa_file() {
 fn bmfa_file_dimensions_should_match_buffer_length() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
     let expected = font_atlas.image.len_bytes();
-    let result = 4 * font_atlas.dimensions * font_atlas.dimensions;
+    let result = 4 * font_atlas.width * font_atlas.height;
 
     assert_eq!(result, expected);
 }
@@ -91,13 +91,13 @@ fn bmfa_file_dimensions_should_match_buffer_length() {
 /// ```
 /// width == columns * slot glyph size
 /// ```
-/// That is, the width of the image should align with the column could and the slot glyph size.
+/// That is, the width of the image should align with the column count and the slot glyph size.
 ///
 #[test]
 fn bmfa_file_dimensions_should_match_width() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
     let expected = font_atlas.columns * font_atlas.slot_glyph_size;
-    let result = font_atlas.dimensions;
+    let result = font_atlas.width;
 
     assert_eq!(result, expected);
 }
@@ -114,7 +114,7 @@ fn bmfa_file_dimensions_should_match_width() {
 fn bmfa_file_dimensions_should_match_height() {
     let font_atlas = bmfa::load(SAMPLE_FILE).unwrap();
     let expected = font_atlas.rows * font_atlas.slot_glyph_size;
-    let result = font_atlas.dimensions;
+    let result = font_atlas.height;
 
     assert_eq!(result, expected);
 }
@@ -188,10 +188,10 @@ fn read_write_test<P: AsRef<Path>>(expected_path: P) -> ReadWriteTest {
 /// Here, the dimensions of the files should match.
 ///
 #[test]
-fn bmfa_file_written_and_then_read_should_match_dimensions() {
+fn bmfa_file_written_and_then_read_should_match_widths() {
     let test = read_write_test(SAMPLE_FILE);
 
-    assert_eq!(test.result_atlas.dimensions, test.expected_atlas.dimensions);
+    assert_eq!(test.result_atlas.width, test.expected_atlas.width);
 }
 
 ///
