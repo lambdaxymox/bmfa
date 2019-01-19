@@ -16,6 +16,10 @@ use image::{ColorType, ImageDecoder};
 pub struct GlyphMetadata {
     /// The unicode code point.
     pub code_point: usize,
+    /// The row of the atlas the glyph is stored in.
+    pub row: usize,
+    /// The column og the atlas the glyph is stored in.
+    pub column: usize,
     /// The minimum offset of the glyph into the slot from the bounding box.
     pub x_min: f32,
     /// The width of the glyph, stored in [0,1].
@@ -29,12 +33,14 @@ pub struct GlyphMetadata {
 
 impl GlyphMetadata {
     pub fn new(
-        code_point: usize,
+        code_point: usize, row: usize, column: usize,
         width: f32, height: f32,
         x_min: f32, y_min: f32, y_offset: f32) -> GlyphMetadata {
 
         GlyphMetadata {
             code_point: code_point,
+            row: row,
+            column: column,
             width: width,
             height: height,
             x_min: x_min,
