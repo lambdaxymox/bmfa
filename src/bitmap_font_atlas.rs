@@ -130,7 +130,7 @@ impl BitmapFontAtlasImage {
     /// Return the height of the image in pixels.
     ///
     #[inline]
-    fn height(&self) -> usize {
+    pub fn height(&self) -> usize {
         self.height
     }
 
@@ -318,12 +318,6 @@ impl fmt::Display for Repr {
     }
 }
 
-impl error::Error for Error {
-    fn source(&self) -> Option<&(dyn error::Error + 'static)> {
-        Some(&*self.repr.error)
-    }
-}
-
 impl Error {
     pub fn new(kind: ErrorKind, error: Box<dyn error::Error + Send + Sync>) -> Error {
         Error {
@@ -338,6 +332,8 @@ impl Error {
         self.repr.kind
     }
 }
+
+impl error::Error for Error {}
 
 ///
 /// Read in a bitmap font atlas from an external source.
