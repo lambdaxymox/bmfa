@@ -8,10 +8,8 @@ use image::png;
 use image::{ColorType, ImageDecoder};
 
 
-///
 /// A `GlyphMetadata` struct stores the parameters necessary to represent
 /// the glyph in a bitmap font atlas.
-///
 #[derive(Copy, Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct GlyphMetadata {
     /// The unicode code point.
@@ -50,11 +48,9 @@ impl GlyphMetadata {
     }
 }
 
-///
 /// The `Origin` parameter determines which part of the underlying font atlas image is considered
 /// the origin of the image. That is, when trying to render the font atlas in a graphics application,
 /// this parameter tells the BMFA parser how to format the atlas image for rendering.
-///
 #[derive(Copy, Clone, Debug, Eq, PartialEq, Serialize, Deserialize)]
 pub enum Origin {
     /// The atlas image starts in the top left corner of the image, with the x-axis pointing right,
@@ -65,11 +61,9 @@ pub enum Origin {
     BottomLeft,
 }
 
-///
 /// The `BitmapFontAtlasMetadata` struct holds all the information about the image
 /// and every glyph in the font atlas, including where each glyph is located in the
 /// atlas image for rendering text.
-///
 #[derive(Clone, Debug, PartialEq, Serialize, Deserialize)]
 pub struct BitmapFontAtlasMetadata {
     /// The origin of the image. This determines the coordinate system and orientation of the image.
@@ -92,10 +86,8 @@ pub struct BitmapFontAtlasMetadata {
     pub glyph_metadata: HashMap<usize, GlyphMetadata>,
 }
 
-///
 /// A `BitmapFontAtlasImage` represents the underlying bitmapped image containing the
 /// font glyph images.
-///
 #[derive(Clone, Debug, Eq, PartialEq)]
 pub struct BitmapFontAtlasImage {
     /// The coordinate origin and coordinate basis for the image.
@@ -118,33 +110,25 @@ impl BitmapFontAtlasImage {
         }
     }
 
-    ///
     /// Return the width of the image in pixels.
-    ///
     #[inline]
     pub fn width(&self) -> usize {
         self.width
     }
 
-    ///
     /// Return the height of the image in pixels.
-    ///
     #[inline]
     pub fn height(&self) -> usize {
         self.height
     }
 
-    ///
     /// Return a pointer to the underlying image data.
-    ///
     #[inline]
     pub fn as_ptr(&self) -> *const u8 {
         &self.data[0]
     }
 
-    ///
     /// The size of the image, in bytes.
-    ///
     pub fn len_bytes(&self) -> usize {
         self.data.len()
     }
@@ -157,10 +141,8 @@ impl AsRef<[u8]> for BitmapFontAtlasImage {
     }
 }
 
-///
 /// A `BitmapFontAtlas` is a bitmapped font sheet. It contains the glyph parameters necessary to
 /// index into the bitmap image as well as the bitmap image itself.
-///
 pub struct BitmapFontAtlas {
     /// The origin of the image. This determines the coordinate system and orientation of the image.
     pub origin: Origin,
@@ -200,9 +182,7 @@ impl BitmapFontAtlas {
         }
     }
 
-    ///
     /// Generate the metadata for the font atlas.
-    ///
     pub fn metadata(&self) -> BitmapFontAtlasMetadata {
         BitmapFontAtlasMetadata {
             origin: self.origin,
@@ -238,9 +218,7 @@ impl BitmapFontAtlasBuilder {
         }
     }
 
-    ///
     /// Build the font atlas and consume the builder.
-    ///
     fn build(mut self) -> BitmapFontAtlas {
         // If the origin is declared as the bottom left, we must flip the image since the
         // PNG image format indexes the image starting from the top left corner
@@ -262,10 +240,8 @@ impl BitmapFontAtlasBuilder {
     }
 }
 
-///
 /// A `BmfaError` is an error typing representing the results of the failure of
 /// a bmfa read or write operation.
-///
 pub struct Error {
     repr: Repr,
 }
@@ -335,9 +311,7 @@ impl Error {
 
 impl error::Error for Error {}
 
-///
 /// Read in a bitmap font atlas from an external source.
-///
 pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas, Error> {
     let mut zip = zip::ZipArchive::new(reader).map_err(|e| {
         Error::new(ErrorKind::FileExistsButCannotBeOpened, Box::new(e))
@@ -366,9 +340,7 @@ pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas,
     Ok(builder.build())
 }
 
-///
 /// Load a bitmap font atlas directly from a file.
-///
 pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, Error> {
     let reader = File::open(&path).map_err(|e| {
         Error::new(ErrorKind::FileNotFound, Box::new(e))
@@ -377,9 +349,7 @@ pub fn load<P: AsRef<Path>>(path: P) -> Result<BitmapFontAtlas, Error> {
     from_reader(reader)
 }
 
-///
 /// Write out of bitmap font atlas to a writer or buffer.
-///
 pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) -> io::Result<()> {
     let mut zip_file = zip::ZipWriter::new(writer);
     let options =
@@ -417,9 +387,7 @@ pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) ->
     Ok(())
 }
 
-///
 /// Write the bitmap font atlas to the disk.
-///
 pub fn write_to_file<P: AsRef<Path>>(path: P, atlas: &BitmapFontAtlas) -> io::Result<()> {
     // Set up the image zip archive.
     let mut file_path = path.as_ref().to_path_buf();
