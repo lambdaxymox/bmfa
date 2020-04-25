@@ -241,7 +241,7 @@ impl BitmapFontAtlasBuilder {
     }
 }
 
-/// A `BmfaError` is an error typing representing the results of the failure of
+/// A `Error` is an error typing representing the results of the failure of
 /// a bmfa read or write operation.
 pub struct Error {
     repr: Repr,
