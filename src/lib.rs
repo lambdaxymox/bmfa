@@ -326,11 +326,14 @@ pub fn from_reader<R: io::Read + io::Seek>(reader: R) -> Result<BitmapFontAtlas,
     let atlas_file = zip.by_name("atlas.png").map_err(|e| {
         Error::new(ErrorKind::FontAtlasImageNotFound, Box::new(e))
     })?;
-    let png_reader = png::PNGDecoder::new(atlas_file).map_err(|e| {
+    let png_reader = png::PngDecoder::new(atlas_file).map_err(|e| {
         Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
     let (width, height) = png_reader.dimensions();
-    let image = png_reader.read_image().map_err(|e| {
+    let (width, height) = (width as usize, height as usize);
+    let depth = png_reader.color_type().bytes_per_pixel() as usize;
+    let mut image: Vec<u8> = vec![0; width * height * depth];
+    png_reader.read_image(&mut image).map_err(|e| {
         Error::new(ErrorKind::CannotLoadAtlasImage, Box::new(e))
     })?;
     let atlas_image = BitmapFontAtlasImage::new(
@@ -380,15 +383,15 @@ pub fn to_writer<W: io::Write + io::Seek>(writer: W, atlas: &BitmapFontAtlas) ->
     zip_file.start_file("atlas.png", options)?;
     let png_writer = png::PNGEncoder::new(&mut zip_file);
     png_writer.encode(
-        image.as_ref(), atlas.width as u32, atlas.height as u32, ColorType::RGBA(8)
-    )?;
+        image.as_ref(), atlas.width as u32, atlas.height as u32, ColorType::Rgba8
+    ).map_err(|e| io::Error::new(io::ErrorKind::Other, Box::new(e)))?;
 
     zip_file.finish()?;
 
     Ok(())
 }
 
-/// Write the bitmap font atlas to the disk.
+/// Write the bitmap font atlas to a file.
 pub fn write_to_file<P: AsRef<Path>>(path: P, atlas: &BitmapFontAtlas) -> io::Result<()> {
     // Set up the image zip archive.
     let mut file_path = path.as_ref().to_path_buf();
