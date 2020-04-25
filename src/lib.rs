@@ -17,13 +17,13 @@ pub struct GlyphMetadata {
     pub code_point: usize,
     /// The row of the atlas the glyph is stored in.
     pub row: usize,
-    /// The column og the atlas the glyph is stored in.
+    /// The column of the atlas the glyph is stored in.
     pub column: usize,
     /// The minimum offset of the glyph into the slot from the bounding box.
     pub x_min: f32,
-    /// The width of the glyph, stored in [0,1].
+    /// The width of the glyph stored in the interval [0,1].
     pub width: f32,
-    /// The height of the glyph, represented in the interval [0,1].
+    /// The height of the glyph represented in the interval [0,1].
     pub height: f32,
     /// The maximum depth of the glyph that falls below the baseline for the font.
     pub y_min: f32,
