@@ -1,11 +1,4 @@
-extern crate serde_json;
-extern crate image;
-extern crate zip;
-
-#[macro_use]
-extern crate serde_derive;
-
-
+use serde_derive::{Serialize, Deserialize};
 use std::collections::HashMap;
 use std::error;
 use std::fmt;
